@@ -3,7 +3,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
-#include <cstdint> //may not need ???
+#include <cstdint>
 #include <arpa/inet.h>
 #include "pAnalyzer.h"
 using namespace std;
@@ -16,19 +16,41 @@ int main(int argc, char* argv[]){
   while(is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
-//     struct frame *frame_ptr = ( struct frame* )buffer;
-    auto *frame_ptr = reinterpret_cast<unsigned char *>(buffer);
-    cout << "framesize(ntohl): " << framesize << endl;
+    frame *frame_ptr = reinterpret_cast<frame *>(buffer);
     is.read(buffer, framesize);
-    ++framecount;
+    cout << "ETHER:\t---- Ether Header ----" << endl;
+    cout << "ETHER:" << endl;
+    cout << "ETHER:\tPacket " << framecount++ << endl;
+    cout << "ETHER:\tPacket size = " << framesize << " bytes" << endl;
     cout << "ETHER:\tDestination = ";
-    for (int i = 0; i < 6; ++i, ++frame_ptr)
-      cout << hex << static_cast<unsigned>(*frame_ptr) << ":";
+    print_MAC_addr(frame_ptr->MACdestination);
     cout << endl;
-//     << frame_ptr->MACdestination << endl;
+    cout << "ETHER:\tSource = ";
+    print_MAC_addr(frame_ptr->MACsource);
+    cout << endl;
+    cout << "ETHER:\tEthertype = ";
+    printEthertype(frame_ptr->ethertype);
+    cout << endl;
     delete[] buffer;
     buffer = NULL;
   }
   cout << "framecount: " << framecount << endl;
   return 0;
+}
+
+
+void print_MAC_addr(const char * ptr){
+  cout << hex;
+  for (int i = 0; i < 6; ++i, ++ptr){
+    cout << (int)(*(unsigned char*)(ptr));
+    if (i !=5 ){
+      cout << ":";
+    }
+  }
+  cout << dec;
+}
+
+void printEthertype(uint16_t ethertype){
+  cout << hex << setfill('0') << setw(4) << ntohs(ethertype);
+  cout << dec;
 }
