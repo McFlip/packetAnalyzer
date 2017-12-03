@@ -38,6 +38,7 @@ int main(int argc, char* argv[]){
       ip *ip_ptr = reinterpret_cast<ip *>(frame_ptr->payload);
       uint8_t version = ip_ptr->version >> 4;
       uint8_t ihl = (ip_ptr->version & 0x0f) * 32 / 8;
+      unsigned char *ip_payload = (reinterpret_cast<unsigned char *>(ip_ptr) + ihl);
       uint8_t dscp = ip_ptr->dscp >> 2;
       uint16_t totLen = ntohs(ip_ptr->totLen);
       uint16_t id = ntohs(ip_ptr->id);
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]){
       }
       cout << "IP:\t\t.." << unsigned(moreFrag) << ". .... = ";
       if (moreFrag){
-        cout << "FUCK! more fragment" << endl;
+        cout << "more fragment" << endl;
       }else{
         cout << "last fragment" << endl;
       }
@@ -79,12 +80,12 @@ int main(int argc, char* argv[]){
           cout << "(TCP)" << endl;
           ++tcp_count;
           break;
-        case 17 : //TEST check if this is dec or hex ???
+        case 17 :
           cout << "(UDP)" << endl;
           ++udp_count;
           break;
         default :
-          cout << "(FUCK! other)" << endl;
+          cout << "(unkown)" << endl;
           ++other_ip_count;
       }
       cout << "IP:\tHeader checksum = " << hex << checksum << endl << dec;
@@ -105,12 +106,92 @@ int main(int argc, char* argv[]){
       }
       cout << endl;
       if (ihl > 20){
-        cout << "FUCK!  Bitch has options!" << endl;
+        cout << "IP:\tOptions ignored" << endl;
       }else{
         cout << "IP:\tNo options" << endl;
       }
       cout << "IP:" << endl;
+      switch (proto){
+        case 1 :
+          cout << "ICMP:\t----- ICMP Header -----" << endl;
 
+          break;
+        case 6 : {
+          tcp *tcp_ptr = reinterpret_cast<tcp *>(ip_payload);
+          uint16_t source = ntohs(tcp_ptr->source);
+          uint16_t destination = ntohs(tcp_ptr->destination);
+          uint32_t sequence = ntohl(tcp_ptr->sequence);
+          uint32_t ack = ntohl(tcp_ptr->ack);
+          uint8_t dataOffset = (tcp_ptr->dataOffset & 0xf0) * 32 / 8;
+          bool URG = tcp_ptr->flags & 0x20;
+          bool ACK = tcp_ptr->flags & 0x10;
+          bool PSH = tcp_ptr->flags & 0x08;
+          bool RST = tcp_ptr->flags & 0x04;
+          bool SYN = tcp_ptr->flags & 0x02;
+          bool FIN = tcp_ptr->flags & 0x01;
+          uint16_t window = ntohs(tcp_ptr->window);
+          uint16_t checksum = ntohs(tcp_ptr->checksum);
+          uint16_t urgentPtr = ntohs(tcp_ptr->urgentPtr);
+          cout << "TCP:\t----- TCP Header -----" << endl;
+          cout << "TCP:" << endl;
+          cout << "TCP:\tSource port = " << unsigned(source) << endl;
+          cout << "TCP:\tDestination port = " << unsigned(destination) << endl;
+          cout << "TCP:\tSequence number = " << unsigned(sequence) << endl;
+          cout << "TCP:\tAcknowledgement number = " << unsigned(ack) << endl;
+          cout << "TCP:\tData offset = " << unsigned(dataOffset) << " bytes" << endl;
+          cout << "TCP:\tFlags" << endl;
+          cout << "TCP:\t\t.." << URG << ". .... = ";
+          if (URG){
+            cout << "Urgent pointer" << endl;
+          }else{
+            cout << "No urgent pointer" << endl;
+          }
+          cout << "TCP:\t\t..." << ACK << " .... = ";
+          if (ACK){
+            cout << "Acknowledgement" << endl;
+          }else{
+            cout << "No acknowledgement" << endl;
+          }
+          cout << "TCP:\t\t.... " << PSH << "... = ";
+          if (PSH){
+            cout << "Push" << endl;
+          }else{
+            cout << "No push" << endl;
+          }
+          cout << "TCP:\t\t.... ." << RST << ".. = ";
+          if (RST){
+            cout << "Reset" << endl;
+          }else{
+            cout << "No reset" << endl;
+          }
+          cout << "TCP:\t\t.... .." << SYN << ". = ";
+          if (SYN){
+            cout << "Syn" << endl;
+          }else{
+            cout << "No syn" << endl;
+          }
+          cout << "TCP:\t\t.... ..." << FIN << " = ";
+          if (FIN){
+            cout << "Fin" << endl;
+          }else{
+            cout << "No fin" << endl;
+          }
+          cout << "TCP:\tWindow = " << unsigned(window) << endl;
+          cout << "TCP:\tChecksum = " << hex << checksum << endl << dec;
+          cout << "TCP:\tUrgent pointer = " << unsigned(urgentPtr) << endl;
+          cout << "TCP:\t";
+          if (dataOffset > 20){
+            cout << "Options ignored" << endl;
+          }else{
+            cout << "No options" << endl;
+          }
+          cout << "TCP:" << endl;
+          break;
+          }
+
+        case 17 :
+          cout << "UDP:\t----- UDP Header -----" << endl;
+      }
     }else if (ethertype == "(ARP)"){
       cout << "DO ARP STUFF" << endl;
     }

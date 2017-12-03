@@ -15,6 +15,18 @@ struct ip{
   uint8_t IPdestination[4];
 };
 
+struct tcp{
+  uint16_t source;
+  uint16_t destination;
+  uint32_t sequence;
+  uint32_t ack;
+  uint8_t dataOffset;
+  uint8_t flags;
+  uint16_t window;
+  uint16_t checksum;
+  uint16_t urgentPtr;
+};
+
 //Ethernet Frame
 struct frame{
   char MACdestination[6];
