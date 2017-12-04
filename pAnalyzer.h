@@ -27,6 +27,21 @@ struct tcp{
   uint16_t urgentPtr;
 };
 
+struct icmp{
+  uint8_t type;
+  uint8_t code;
+  uint16_t checksum;
+  uint16_t id;
+  uint16_t sequence;
+};
+
+struct udp{
+  uint16_t source;
+  uint16_t destination;
+  uint16_t length;
+  uint16_t checksum;
+};
+
 //Ethernet Frame
 struct frame{
   char MACdestination[6];

@@ -15,7 +15,7 @@ int framecount = 0, arp_count = 0, ip_count = 0, udp_count = 0, broadcast_count 
 
 int main(int argc, char* argv[]){
   uint32_t framesize;
-  ifstream is ("dumpfile.bin", ifstream::binary);
+  ifstream is ("dumpfile5000.bin", ifstream::binary);
   while(is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]){
       cout << "IP:" << endl;
       cout << "IP:\tVersion = " << unsigned(version) << endl;
       cout << "IP:\tHeader length = " << unsigned(ihl) << " bytes" << endl;
-      cout << "IP:\tType of service = " << unsigned(dscp) << endl;
+      cout << "IP:\tType of service = " << hex << dscp << endl << dec;
       cout << "IP:\tTotal length = " << unsigned(totLen) << endl;
       cout << "IP:\tIdentification = " << unsigned(id) << endl;
       cout << "IP:\tFlags" << endl;
@@ -112,10 +112,54 @@ int main(int argc, char* argv[]){
       }
       cout << "IP:" << endl;
       switch (proto){
-        case 1 :
+        case 1 : {
+          icmp *icmp_ptr = reinterpret_cast<icmp *>(ip_payload);
+          uint8_t type = icmp_ptr->type;
+          uint8_t code = icmp_ptr->code;
+          uint16_t checksum = ntohs(icmp_ptr->checksum);
+          uint16_t id = ntohs(icmp_ptr->id);
+          uint16_t sequence = ntohs(icmp_ptr->sequence);
           cout << "ICMP:\t----- ICMP Header -----" << endl;
-
+          cout << "ICMP:" << endl;
+          cout << "ICMP:\tType = " << unsigned(type) << ' ';
+          switch (type){
+            case 0 :
+              cout << "(Echo Reply)";
+              break;
+            case 3 :
+              cout << "(Destination Unreachable)";
+              break;
+            case 5 :
+              cout << "(Redirect Message)";
+              break;
+            case 8 :
+              cout << "(Echo Request)";
+              break;
+            case 9 :
+              cout << "(Router Advertisement)";
+              break;
+            case 10 :
+              cout << "(Router Solicitation)";
+              break;
+            case 11:
+              cout << "(Time Exceeded)";
+              break;
+            case 12:
+              cout << "(Parameter Problem: Bad IP header)";
+            case 13:
+              cout << "(Timestamp)";
+              break;
+            case 14:
+              cout << "(Timestamp Reply)";
+          }
+          cout << endl;
+          cout << "ICMP:\tCode = " << unsigned(code) << endl;
+          cout << "ICMP:\tChecksum = " << hex << checksum << endl << dec;
+          cout << "ICMP:\tIdentifier = "  << unsigned(id) << endl;
+          cout << "ICMP:\tSequence number = " << unsigned(sequence) << endl;
+          cout << "ICMP:" << endl;
           break;
+        }
         case 6 : {
           tcp *tcp_ptr = reinterpret_cast<tcp *>(ip_payload);
           uint16_t source = ntohs(tcp_ptr->source);
@@ -189,8 +233,21 @@ int main(int argc, char* argv[]){
           break;
           }
 
-        case 17 :
+        case 17 : {
+          udp *udp_ptr = reinterpret_cast<udp *>(ip_payload);
+          uint16_t source = ntohs(udp_ptr->source);
+          uint16_t destination = ntohs(udp_ptr->destination);
+          uint16_t length = ntohs(udp_ptr->length);
+          uint16_t checksum = ntohs(udp_ptr->checksum);
           cout << "UDP:\t----- UDP Header -----" << endl;
+          cout << "UDP:" << endl;
+          cout << "UDP:\tSource port = " << unsigned(source) << endl;
+          cout << "UDP:\tDestination port = " << unsigned(destination) << endl;
+          cout << "UDP:\tMessage length = " << unsigned(length) << endl;
+          cout << "UDP:\tChecksum = " << hex << checksum << endl << dec;
+          cout << "UDP:" << endl;
+        }
+
       }
     }else if (ethertype == "(ARP)"){
       cout << "DO ARP STUFF" << endl;
