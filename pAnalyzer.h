@@ -50,8 +50,21 @@ struct frame{
   uint8_t payload[20];
 };
 
+struct arp{
+  uint16_t htype;
+  uint16_t ptype;
+  uint8_t hlen;
+  uint8_t plen;
+  uint16_t operation;
+  char sha[6];
+  uint8_t spa[4];
+  char tha[6];
+  uint8_t tpa[4];
+};
+
 // Functions
 void print_MAC_addr(const char * ptr);
+void print_IP_addr(uint8_t *ptr);
 std::__cxx11::string printEthertype( uint16_t ethertype );
 
 #endif

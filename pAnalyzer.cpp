@@ -22,15 +22,15 @@ int main(int argc, char* argv[]){
     frame *frame_ptr = reinterpret_cast<frame *>(buffer);
     is.read(buffer, framesize);
     cout << endl;
-    cout << "ETHER:\t---- Ether Header ----" << endl;
+    cout << "ETHER:  ----- Ether Header -----" << endl;
     cout << "ETHER:" << endl;
-    cout << "ETHER:\tPacket " << framecount++ << endl;
-    cout << "ETHER:\tPacket size = " << framesize << " bytes" << endl;
-    cout << "ETHER:\tDestination = ";
+    cout << "ETHER:  Packet " << framecount++ << endl;
+    cout << "ETHER:  Packet size = " << framesize << " bytes" << endl;
+    cout << "ETHER:  Destination = ";
     print_MAC_addr(frame_ptr->MACdestination);
-    cout << "ETHER:\tSource = ";
+    cout << "ETHER:  Source      = ";
     print_MAC_addr(frame_ptr->MACsource);
-    cout << "ETHER:\tEthertype = ";
+    cout << "ETHER:  Ethertype   = ";
     string ethertype (printEthertype(frame_ptr->ethertype));
     cout << ethertype << endl;
     cout << "ETHER:" << endl;
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]){
       uint8_t version = ip_ptr->version >> 4;
       uint8_t ihl = (ip_ptr->version & 0x0f) * 32 / 8;
       unsigned char *ip_payload = (reinterpret_cast<unsigned char *>(ip_ptr) + ihl);
-      uint8_t dscp = ip_ptr->dscp >> 2;
+      uint8_t dscp = ip_ptr->dscp;
       uint16_t totLen = ntohs(ip_ptr->totLen);
       uint16_t id = ntohs(ip_ptr->id);
       uint16_t doNotFrag = ntohs(ip_ptr->flags) >> 14;
@@ -49,28 +49,28 @@ int main(int argc, char* argv[]){
       uint16_t checksum = ntohs(ip_ptr->checksum);
       uint8_t *IPsource = ip_ptr->IPsource;
       uint8_t *IPdestination = ip_ptr->IPdestination;
-      cout << "IP:\t----- IP Header -----" << endl;
+      cout << "IP:  ----- IP Header -----" << endl;
       cout << "IP:" << endl;
-      cout << "IP:\tVersion = " << unsigned(version) << endl;
-      cout << "IP:\tHeader length = " << unsigned(ihl) << " bytes" << endl;
-      cout << "IP:\tType of service = " << hex << dscp << endl << dec;
-      cout << "IP:\tTotal length = " << unsigned(totLen) << endl;
-      cout << "IP:\tIdentification = " << unsigned(id) << endl;
-      cout << "IP:\tFlags" << endl;
-      cout << "IP:\t\t." << unsigned(doNotFrag) << ".. .... = ";
+      cout << "IP:  Version = " << unsigned(version) << endl;
+      cout << "IP:  Header length = " << unsigned(ihl) << " bytes" << endl;
+      cout << "IP:  Type of service = " << hex << unsigned(dscp) << endl << dec;
+      cout << "IP:  Total length = " << unsigned(totLen) << " bytes" << endl;
+      cout << "IP:  Identification = " << unsigned(id) << endl;
+      cout << "IP:  Flags" << endl;
+      cout << "IP:    ." << unsigned(doNotFrag) << ".. .... = ";
       if (doNotFrag){
         cout << "do not fragment" << endl;
       }else{
         cout << "allow fragment" << endl;
       }
-      cout << "IP:\t\t.." << unsigned(moreFrag) << ". .... = ";
+      cout << "IP:    .." << unsigned(moreFrag) << ". .... = ";
       if (moreFrag){
         cout << "more fragment" << endl;
       }else{
         cout << "last fragment" << endl;
       }
-      cout << "IP:\tFragment offset = " << unsigned(fragOffset) << endl;
-      cout << "IP:\tProtocol = " << unsigned(proto) << " ";
+      cout << "IP:  Fragment offset = " << unsigned(fragOffset) << " bytes" << endl;
+      cout << "IP:  Protocol = " << unsigned(proto) << " ";
       switch (proto){
         case 1 :
           cout << "(ICMP)" << endl;
@@ -85,30 +85,20 @@ int main(int argc, char* argv[]){
           ++udp_count;
           break;
         default :
-          cout << "(unkown)" << endl;
+          cout << "(unknown)" << endl;
           ++other_ip_count;
       }
-      cout << "IP:\tHeader checksum = " << hex << checksum << endl << dec;
-      cout << "IP:\tSource address = ";
-      for (int i = 0; i < 4; ++i, ++IPsource){
-        cout << unsigned(*IPsource);
-        if (i != 3){
-          cout << ".";
-        }
-      }
+      cout << "IP:  Header checksum = " << hex << checksum << endl << dec;
+      cout << "IP:  Source address = ";
+      print_IP_addr(IPsource);
       cout << endl;
-      cout << "IP:\tDestination address = ";
-      for (int i = 0; i < 4; ++i, ++IPdestination){
-        cout << unsigned(*IPdestination);
-        if (i != 3){
-          cout << ".";
-        }
-      }
+      cout << "IP:  Destination address = ";
+      print_IP_addr(IPdestination);
       cout << endl;
       if (ihl > 20){
-        cout << "IP:\tOptions ignored" << endl;
+        cout << "IP:  Options ignored" << endl;
       }else{
-        cout << "IP:\tNo options" << endl;
+        cout << "IP:  No options" << endl;
       }
       cout << "IP:" << endl;
       switch (proto){
@@ -119,9 +109,9 @@ int main(int argc, char* argv[]){
           uint16_t checksum = ntohs(icmp_ptr->checksum);
           uint16_t id = ntohs(icmp_ptr->id);
           uint16_t sequence = ntohs(icmp_ptr->sequence);
-          cout << "ICMP:\t----- ICMP Header -----" << endl;
-          cout << "ICMP:" << endl;
-          cout << "ICMP:\tType = " << unsigned(type) << ' ';
+          cout << "ICMP:  ----- ICMP Header -----" << endl;
+          cout << "ICMP: " << endl;
+          cout << "ICMP: Type = " << unsigned(type) << ' ';
           switch (type){
             case 0 :
               cout << "(Echo Reply)";
@@ -153,10 +143,10 @@ int main(int argc, char* argv[]){
               cout << "(Timestamp Reply)";
           }
           cout << endl;
-          cout << "ICMP:\tCode = " << unsigned(code) << endl;
-          cout << "ICMP:\tChecksum = " << hex << checksum << endl << dec;
-          cout << "ICMP:\tIdentifier = "  << unsigned(id) << endl;
-          cout << "ICMP:\tSequence number = " << unsigned(sequence) << endl;
+          cout << "ICMP: Code = " << unsigned(code) << endl;
+          cout << "ICMP: Checksum = " << hex << checksum << endl << dec;
+          cout << "ICMP: Identifier = "  << unsigned(id) << endl;
+          cout << "ICMP: Sequence number = " << unsigned(sequence) << endl;
           cout << "ICMP:" << endl;
           break;
         }
@@ -166,7 +156,7 @@ int main(int argc, char* argv[]){
           uint16_t destination = ntohs(tcp_ptr->destination);
           uint32_t sequence = ntohl(tcp_ptr->sequence);
           uint32_t ack = ntohl(tcp_ptr->ack);
-          uint8_t dataOffset = (tcp_ptr->dataOffset & 0xf0) * 32 / 8;
+          uint8_t dataOffset = (tcp_ptr->dataOffset >> 4) * 32 / 8;
           bool URG = tcp_ptr->flags & 0x20;
           bool ACK = tcp_ptr->flags & 0x10;
           bool PSH = tcp_ptr->flags & 0x08;
@@ -176,54 +166,54 @@ int main(int argc, char* argv[]){
           uint16_t window = ntohs(tcp_ptr->window);
           uint16_t checksum = ntohs(tcp_ptr->checksum);
           uint16_t urgentPtr = ntohs(tcp_ptr->urgentPtr);
-          cout << "TCP:\t----- TCP Header -----" << endl;
-          cout << "TCP:" << endl;
-          cout << "TCP:\tSource port = " << unsigned(source) << endl;
-          cout << "TCP:\tDestination port = " << unsigned(destination) << endl;
-          cout << "TCP:\tSequence number = " << unsigned(sequence) << endl;
-          cout << "TCP:\tAcknowledgement number = " << unsigned(ack) << endl;
-          cout << "TCP:\tData offset = " << unsigned(dataOffset) << " bytes" << endl;
-          cout << "TCP:\tFlags" << endl;
-          cout << "TCP:\t\t.." << URG << ". .... = ";
+          cout << "TCP:  ----- TCP Header -----" << endl;
+          cout << "TCP: " << endl;
+          cout << "TCP:  Source port = " << unsigned(source) << endl;
+          cout << "TCP:  Destination port = " << unsigned(destination) << endl;
+          cout << "TCP:  Sequence number = " << unsigned(sequence) << endl;
+          cout << "TCP:  Acknowledgement number = " << unsigned(ack) << endl;
+          cout << "TCP:  Data offset = " << unsigned(dataOffset) << " bytes" << endl;
+          cout << "TCP:  Flags" << endl;
+          cout << "TCP:      .." << URG << ". .... = ";
           if (URG){
             cout << "Urgent pointer" << endl;
           }else{
             cout << "No urgent pointer" << endl;
           }
-          cout << "TCP:\t\t..." << ACK << " .... = ";
+          cout << "TCP:      ..." << ACK << " .... = ";
           if (ACK){
             cout << "Acknowledgement" << endl;
           }else{
             cout << "No acknowledgement" << endl;
           }
-          cout << "TCP:\t\t.... " << PSH << "... = ";
+          cout << "TCP:      .... " << PSH << "... = ";
           if (PSH){
             cout << "Push" << endl;
           }else{
             cout << "No push" << endl;
           }
-          cout << "TCP:\t\t.... ." << RST << ".. = ";
+          cout << "TCP:      .... ." << RST << ".. = ";
           if (RST){
             cout << "Reset" << endl;
           }else{
             cout << "No reset" << endl;
           }
-          cout << "TCP:\t\t.... .." << SYN << ". = ";
+          cout << "TCP:      .... .." << SYN << ". = ";
           if (SYN){
             cout << "Syn" << endl;
           }else{
-            cout << "No syn" << endl;
+            cout << "No Syn" << endl;
           }
-          cout << "TCP:\t\t.... ..." << FIN << " = ";
+          cout << "TCP:      .... ..." << FIN << " = ";
           if (FIN){
             cout << "Fin" << endl;
           }else{
-            cout << "No fin" << endl;
+            cout << "No Fin" << endl;
           }
-          cout << "TCP:\tWindow = " << unsigned(window) << endl;
-          cout << "TCP:\tChecksum = " << hex << checksum << endl << dec;
-          cout << "TCP:\tUrgent pointer = " << unsigned(urgentPtr) << endl;
-          cout << "TCP:\t";
+          cout << "TCP:  Window = " << unsigned(window) << endl;
+          cout << "TCP:  Checksum = " << hex << checksum << endl << dec;
+          cout << "TCP:  Urgent pointer = " << unsigned(urgentPtr) << endl;
+          cout << "TCP:  ";
           if (dataOffset > 20){
             cout << "Options ignored" << endl;
           }else{
@@ -239,23 +229,58 @@ int main(int argc, char* argv[]){
           uint16_t destination = ntohs(udp_ptr->destination);
           uint16_t length = ntohs(udp_ptr->length);
           uint16_t checksum = ntohs(udp_ptr->checksum);
-          cout << "UDP:\t----- UDP Header -----" << endl;
-          cout << "UDP:" << endl;
-          cout << "UDP:\tSource port = " << unsigned(source) << endl;
-          cout << "UDP:\tDestination port = " << unsigned(destination) << endl;
-          cout << "UDP:\tMessage length = " << unsigned(length) << endl;
-          cout << "UDP:\tChecksum = " << hex << checksum << endl << dec;
+          cout << "UDP:  ----- UDP Header -----" << endl;
+          cout << "UDP: " << endl;
+          cout << "UDP:  Source port = " << unsigned(source) << endl;
+          cout << "UDP:  Destination port = " << unsigned(destination) << endl;
+          cout << "UDP:  Message length = " << unsigned(length) << endl;
+          cout << "UDP:  Checksum = " << hex << checksum << endl << dec;
           cout << "UDP:" << endl;
         }
 
       }
     }else if (ethertype == "(ARP)"){
-      cout << "DO ARP STUFF" << endl;
+      arp *arp_ptr = reinterpret_cast<arp *>(frame_ptr->payload);
+      uint16_t htype = ntohs(arp_ptr->htype);
+      uint8_t hlen = arp_ptr->hlen;
+      uint8_t plen = arp_ptr->plen;
+      uint16_t operation = ntohs(arp_ptr->operation);
+      cout << "ARP:  ----- ARP Frame -----" << endl;
+      cout << "ARP:  " << endl;
+      cout << "ARP:  Hardware type = " << unsigned(htype) << ' ';
+      if (htype == 1){
+        cout << "(Ethernet)" << endl;
+      }else{
+        cout << "(other)" << endl;
+      }
+      cout << "ARP:  Protocol type = ";
+      printEthertype(arp_ptr->ptype); cout << "(IP)" << endl;
+      cout << "ARP:  Length of hardware address = " << unsigned(hlen) << " bytes" << endl;
+      cout << "ARP:  Length of protocol address = " << unsigned(plen) << " bytes" << endl;
+      cout << "ARP:  Opcode " << unsigned(operation) << ' ';
+      if (operation == 1){
+        cout << "(ARP Request)" << endl;
+      }else{
+        cout << "(ARP Reply)" << endl;
+      }
+      cout << "ARP:  Sender's hardware address = ";
+      print_MAC_addr(arp_ptr->sha);
+      cout << "ARP:  Sender's protocol address = ";
+      print_IP_addr(arp_ptr->spa); cout << endl;
+      cout << "ARP:  Target hardware address = ";
+      if (operation == 1){
+        cout << "?" << endl;
+      }else{
+        print_MAC_addr(arp_ptr->tha);
+      }
+      cout << "ARP:  Target protocol address = ";
+      print_IP_addr(arp_ptr->tpa); cout << endl;
+      cout << "ARP:" << endl;
     }
     delete[] buffer;
     buffer = NULL;
   }
-  cout << "framecount: " << framecount << endl;
+//   cout << "framecount: " << framecount << endl;
   return 0;
 }
 
@@ -277,6 +302,15 @@ void print_MAC_addr(const char * ptr){
   }
 }
 
+void print_IP_addr(uint8_t *ptr){
+  for (int i = 0; i < 4; ++i, ++ptr){
+    cout << unsigned(*ptr);
+    if (i != 3){
+      cout << ".";
+    }
+  }
+}
+
 string printEthertype(uint16_t ethertype){
   string returnStr;
   ethertype = ntohs(ethertype);
@@ -291,7 +325,7 @@ string printEthertype(uint16_t ethertype){
       ++arp_count;
       break;
     default :
-      returnStr = "(unkown)";
+      returnStr = "(unknown)";
       ++other_count;
   }
   cout << dec;
