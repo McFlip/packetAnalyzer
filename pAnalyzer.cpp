@@ -19,7 +19,7 @@ int maxFrameCt = 10;
 
 int main(int argc, char* argv[]){
   uint32_t framesize;
-  ifstream is ("dumpfile500.bin", ifstream::binary);
+  ifstream is ("dumpfile5000.bin", ifstream::binary);
   while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
@@ -281,8 +281,6 @@ int main(int argc, char* argv[]){
         }
         cout << "ARP:  Protocol type = ";
         printEthertype(arp_ptr->ptype);
-      }
-      if (VERBOSE){
         cout << "(IP)" << endl;
         cout << "ARP:  Length of hardware address = " << unsigned(hlen) << " bytes" << endl;
         cout << "ARP:  Length of protocol address = " << unsigned(plen) << " bytes" << endl;
@@ -305,6 +303,32 @@ int main(int argc, char* argv[]){
         cout << "ARP:  Target protocol address = ";
         print_IP_addr(arp_ptr->tpa); cout << endl;
         cout << "ARP:" << endl;
+      }else if (verbose){
+        int bcopy = broadcast_count;
+        bool isBroadcast = false;
+        verbose = false;
+        print_MAC_addr(frame_ptr->MACdestination);
+        if (broadcast_count > bcopy){
+          isBroadcast = true;
+        }
+        print_IP_addr(arp_ptr->spa);
+        cout << " -> ";
+        if (isBroadcast){
+          cout << "(broadcast)";
+        }else{
+          print_IP_addr(arp_ptr->tpa);
+        }
+        cout << " (ARP) ";
+        if (operation == 1){
+          cout << "who is ";
+          print_IP_addr(arp_ptr->tpa); cout << endl;
+        }else{
+          print_IP_addr(arp_ptr->spa);
+          cout << "'s hardware address is ";
+          verbose = true;
+          print_MAC_addr(arp_ptr->sha); cout << endl;
+        }
+        verbose = true;
       }
     }else if (verbose){
       union ethertype_u{
