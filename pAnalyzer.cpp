@@ -19,7 +19,7 @@ int maxFrameCt = 10;
 
 int main(int argc, char* argv[]){
   uint32_t framesize;
-  ifstream is ("dumpfile5000.bin", ifstream::binary);
+  ifstream is ("dumpfile500.bin", ifstream::binary);
   while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
@@ -235,12 +235,12 @@ int main(int argc, char* argv[]){
                 cout << "No options" << endl;
               }
               cout << "TCP:" << endl;
-              break;
             }else{
               cout << " (TCP) ";
               cout << "sourceport = " << unsigned(source);
               cout << " destport = " << unsigned(destination) << endl;
             }
+            break;
           }
           case 17 : {
             udp *udp_ptr = reinterpret_cast<udp *>(ip_payload);
@@ -248,13 +248,19 @@ int main(int argc, char* argv[]){
             uint16_t destination = ntohs(udp_ptr->destination);
             uint16_t length = ntohs(udp_ptr->length);
             uint16_t checksum = ntohs(udp_ptr->checksum);
-            cout << "UDP:  ----- UDP Header -----" << endl;
-            cout << "UDP: " << endl;
-            cout << "UDP:  Source port = " << unsigned(source) << endl;
-            cout << "UDP:  Destination port = " << unsigned(destination) << endl;
-            cout << "UDP:  Message length = " << unsigned(length) << endl;
-            cout << "UDP:  Checksum = " << hex << checksum << endl << dec;
-            cout << "UDP:" << endl;
+            if (VERBOSE){
+              cout << "UDP:  ----- UDP Header -----" << endl;
+              cout << "UDP: " << endl;
+              cout << "UDP:  Source port = " << unsigned(source) << endl;
+              cout << "UDP:  Destination port = " << unsigned(destination) << endl;
+              cout << "UDP:  Message length = " << unsigned(length) << endl;
+              cout << "UDP:  Checksum = " << hex << checksum << endl << dec;
+              cout << "UDP:" << endl;
+            }else if (verbose){
+              cout << " (UDP) ";
+              cout << "sourceport = " << unsigned(source);
+              cout << " destport = " << unsigned(destination) << endl;
+            }
           }
         }
       }
