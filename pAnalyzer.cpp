@@ -14,11 +14,13 @@ int framecount = 0, arp_count = 0, ip_count = 0, udp_count = 0, broadcast_count 
       tcp_count = 0, icmp_count = 0, other_ip_count = 0, other_count = 0;
 bool verbose = false;
 bool VERBOSE = false;
+bool countOption = false;
+int maxFrameCt = 10;
 
 int main(int argc, char* argv[]){
   uint32_t framesize;
   ifstream is ("dumpfile5000.bin", ifstream::binary);
-  while(is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
+  while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
     frame *frame_ptr = reinterpret_cast<frame *>(buffer);
@@ -362,4 +364,14 @@ string printEthertype(uint16_t ethertype){
   }
   cout << dec;
   return returnStr;
+}
+
+bool checkFrameCt(int max){
+  if (!countOption){
+    return true;
+  }else if (framecount < maxFrameCt){
+    return true;
+  }else{
+    return false;
+  }
 }

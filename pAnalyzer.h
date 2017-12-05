@@ -66,5 +66,6 @@ struct arp{
 void print_MAC_addr(const char * ptr);
 void print_IP_addr(uint8_t *ptr);
 std::__cxx11::string printEthertype( uint16_t ethertype );
+bool checkFrameCt(int max);
 
 #endif
