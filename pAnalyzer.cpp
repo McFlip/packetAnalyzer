@@ -12,14 +12,14 @@ using namespace std;
 
 int framecount = 0, arp_count = 0, ip_count = 0, udp_count = 0, broadcast_count = 0,
       tcp_count = 0, icmp_count = 0, other_ip_count = 0, other_count = 0;
-bool verbose = false;
+bool verbose = true;
 bool VERBOSE = false;
 bool countOption = false;
 int maxFrameCt = 10;
 
 int main(int argc, char* argv[]){
   uint32_t framesize;
-  ifstream is ("dumpfile5000.bin", ifstream::binary);
+  ifstream is ("dumpfile.bin", ifstream::binary);
   while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
@@ -33,10 +33,11 @@ int main(int argc, char* argv[]){
       cout << "ETHER:  Packet size = " << framesize << " bytes" << endl;
       cout << "ETHER:  Destination = ";
     }
-    print_MAC_addr(frame_ptr->MACdestination);
+    if (!verbose)
+      print_MAC_addr(frame_ptr->MACdestination);
     if (VERBOSE){
-      cout << "ETHER:  Source      = ";
-      print_MAC_addr(frame_ptr->MACsource);
+      cout << endl << "ETHER:  Source      = ";
+      print_MAC_addr(frame_ptr->MACsource); cout << endl;
       cout << "ETHER:  Ethertype   = ";
     }
     string ethertype (printEthertype(frame_ptr->ethertype));
@@ -284,25 +285,39 @@ int main(int argc, char* argv[]){
           cout << "(ARP Reply)" << endl;
         }
         cout << "ARP:  Sender's hardware address = ";
-        print_MAC_addr(arp_ptr->sha);
+        print_MAC_addr(arp_ptr->sha); cout << endl;
         cout << "ARP:  Sender's protocol address = ";
         print_IP_addr(arp_ptr->spa); cout << endl;
         cout << "ARP:  Target hardware address = ";
         if (operation == 1){
           cout << "?" << endl;
         }else{
-          print_MAC_addr(arp_ptr->tha);
+          print_MAC_addr(arp_ptr->tha); cout << endl;
         }
         cout << "ARP:  Target protocol address = ";
         print_IP_addr(arp_ptr->tpa); cout << endl;
         cout << "ARP:" << endl;
       }
+    }else if (verbose){
+      union ethertype_u{
+        uint16_t myShort;
+        struct oct_t{
+          uint8_t oct1;
+          uint8_t oct2;
+        }oct;
+      }e_type;
+      e_type.myShort = ntohs(frame_ptr->ethertype);
+      cout << "unkown packet (";
+      print_MAC_addr(frame_ptr->MACdestination); cout << ", ";
+      print_MAC_addr(frame_ptr->MACsource); cout << ", ";
+      cout << hex << unsigned(e_type.oct.oct2) << ':' << unsigned(e_type.oct.oct1) << ")" << endl << dec;
+
     }
     ++framecount;
     delete[] buffer;
     buffer = NULL;
   }
-  if (!VERBOSE){
+  if (!VERBOSE && !verbose){
     cout << "Ethernet frames: \t" << framecount << endl;
     cout << "Ethernet broadcast: \t" << broadcast_count << endl;
     cout << "  ARP packets: \t\t" << arp_count << endl;
@@ -328,8 +343,8 @@ void print_MAC_addr(const char * ptr){
       strncat(mystr,":",1);
     }
   }
-  if (VERBOSE)
-    cout << mystr << endl;
+  if (VERBOSE || verbose)
+    cout << mystr;
   if (strcmp(mystr,"ff:ff:ff:ff:ff:ff") == 0){
     ++broadcast_count;
   }
