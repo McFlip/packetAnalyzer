@@ -19,7 +19,7 @@ int maxFrameCt = 10;
 
 int main(int argc, char* argv[]){
   uint32_t framesize;
-  ifstream is ("dumpfile.bin", ifstream::binary);
+  ifstream is ("dumpfile5000.bin", ifstream::binary);
   while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
@@ -105,20 +105,28 @@ int main(int argc, char* argv[]){
             cout << "(unknown)" << endl;
           ++other_ip_count;
       }
-      if (VERBOSE){
-        cout << "IP:  Header checksum = " << hex << checksum << endl << dec;
-        cout << "IP:  Source address = ";
-        print_IP_addr(IPsource);
-        cout << endl;
-        cout << "IP:  Destination address = ";
-        print_IP_addr(IPdestination);
-        cout << endl;
-        if (ihl > 20){
-          cout << "IP:  Options ignored" << endl;
-        }else{
-          cout << "IP:  No options" << endl;
+      if (VERBOSE || verbose){
+        if (VERBOSE){
+          cout << "IP:  Header checksum = " << hex << checksum << endl << dec;
+          cout << "IP:  Source address = ";
         }
-        cout << "IP:" << endl;
+        print_IP_addr(IPsource);
+        if (verbose){
+          cout << " -> ";
+        }else{
+          cout << endl;
+          cout << "IP:  Destination address = ";
+        }
+        print_IP_addr(IPdestination);
+        if (VERBOSE){
+          cout << endl;
+          if (ihl > 20){
+          cout << "IP:  Options ignored" << endl;
+          }else{
+            cout << "IP:  No options" << endl;
+          }
+          cout << "IP:" << endl;
+        }
         switch (proto){
           case 1 : {
             icmp *icmp_ptr = reinterpret_cast<icmp *>(ip_payload);
@@ -127,45 +135,33 @@ int main(int argc, char* argv[]){
             uint16_t checksum = ntohs(icmp_ptr->checksum);
             uint16_t id = ntohs(icmp_ptr->id);
             uint16_t sequence = ntohs(icmp_ptr->sequence);
-            cout << "ICMP:  ----- ICMP Header -----" << endl;
-            cout << "ICMP: " << endl;
-            cout << "ICMP: Type = " << unsigned(type) << ' ';
+            if (VERBOSE){
+              cout << "ICMP:  ----- ICMP Header -----" << endl;
+              cout << "ICMP: " << endl;
+              cout << "ICMP: Type = (" << unsigned(type) << ' ';
+            }else{
+              cout << " (ICMP), ";
+            }
             switch (type){
               case 0 :
-                cout << "(Echo Reply)";
-                break;
-              case 3 :
-                cout << "(Destination Unreachable)";
-                break;
-              case 5 :
-                cout << "(Redirect Message)";
+                cout << "Echo Reply";
                 break;
               case 8 :
-                cout << "(Echo Request)";
+                cout << "Echo Request";
                 break;
-              case 9 :
-                cout << "(Router Advertisement)";
-                break;
-              case 10 :
-                cout << "(Router Solicitation)";
-                break;
-              case 11:
-                cout << "(Time Exceeded)";
-                break;
-              case 12:
-                cout << "(Parameter Problem: Bad IP header)";
-              case 13:
-                cout << "(Timestamp)";
-                break;
-              case 14:
-                cout << "(Timestamp Reply)";
+              default :
+                cout << "unkown type";
             }
-            cout << endl;
-            cout << "ICMP: Code = " << unsigned(code) << endl;
-            cout << "ICMP: Checksum = " << hex << checksum << endl << dec;
-            cout << "ICMP: Identifier = "  << unsigned(id) << endl;
-            cout << "ICMP: Sequence number = " << unsigned(sequence) << endl;
-            cout << "ICMP:" << endl;
+            if(verbose){
+              cout << " (type=" << unsigned(type)  << ")" << endl;
+            }else{
+              cout << ')' << endl;
+              cout << "ICMP: Code = " << unsigned(code) << endl;
+              cout << "ICMP: Checksum = " << hex << checksum << endl << dec;
+              cout << "ICMP: Identifier = "  << unsigned(id) << endl;
+              cout << "ICMP: Sequence number = " << unsigned(sequence) << endl;
+              cout << "ICMP:" << endl;
+            }
             break;
           }
           case 6 : {
