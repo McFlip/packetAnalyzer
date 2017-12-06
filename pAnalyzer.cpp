@@ -18,7 +18,7 @@ bool verbose = false, VERBOSE = false, countOption = false;
 int main(int argc, char* argv[]){
   int o;
   char *filename = NULL;
-  while((o = getopt(argc,argv,"cvV")) != -1){
+  while((o = getopt(argc,argv,"c:vV")) != -1){
     switch(o){
       case 'c' :
         maxFrameCt = stoi(optarg,NULL);
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
         VERBOSE = true;
         break;
       default:
-        cerr << "unkown option" << endl;
+        cerr << "unknown option" << endl;
         abort();
     }
   }
@@ -43,7 +43,11 @@ int main(int argc, char* argv[]){
     abort();
   }
   uint32_t framesize;
-  ifstream is (filename, ifstream::binary); //TODO: add error check
+  ifstream is (filename, ifstream::binary);
+  if (!is.is_open()){
+    cerr << "Could not open dumpfile" << endl;
+    abort();
+  }
   while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
@@ -162,7 +166,7 @@ int main(int argc, char* argv[]){
             if (VERBOSE){
               cout << "ICMP:  ----- ICMP Header -----" << endl;
               cout << "ICMP: " << endl;
-              cout << "ICMP: Type = (" << unsigned(type) << ' ';
+              cout << "ICMP: Type = " << unsigned(type) << " (";
             }else{
               cout << " (ICMP), ";
             }
@@ -174,7 +178,7 @@ int main(int argc, char* argv[]){
                 cout << "Echo Request";
                 break;
               default :
-                cout << "unkown type";
+                cout << "unknown type";
             }
             if(verbose){
               cout << " (type=" << unsigned(type)  << ")" << endl;
@@ -363,7 +367,7 @@ int main(int argc, char* argv[]){
         }oct;
       }e_type;
       e_type.myShort = ntohs(frame_ptr->ethertype);
-      cout << "unkown packet (";
+      cout << "(unknown packet) (";
       print_MAC_addr(frame_ptr->MACdestination); cout << ", ";
       print_MAC_addr(frame_ptr->MACsource); cout << ", ";
       cout << hex << unsigned(e_type.oct.oct2) << ':' << unsigned(e_type.oct.oct1) << ")" << endl << dec;
