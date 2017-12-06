@@ -7,19 +7,43 @@
 #include <cstring>
 #include <string>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include "pAnalyzer.h"
 using namespace std;
 
 int framecount = 0, arp_count = 0, ip_count = 0, udp_count = 0, broadcast_count = 0,
-      tcp_count = 0, icmp_count = 0, other_ip_count = 0, other_count = 0;
-bool verbose = true;
-bool VERBOSE = false;
-bool countOption = false;
-int maxFrameCt = 10;
+tcp_count = 0, icmp_count = 0, other_ip_count = 0, other_count = 0, maxFrameCt = 0;
+bool verbose = false, VERBOSE = false, countOption = false;
 
 int main(int argc, char* argv[]){
+  int o;
+  char *filename = NULL;
+  while((o = getopt(argc,argv,"cvV")) != -1){
+    switch(o){
+      case 'c' :
+        maxFrameCt = stoi(optarg,NULL);
+        countOption = true;
+        break;
+      case 'v' :
+        verbose = true;
+        break;
+      case 'V' :
+        VERBOSE = true;
+        break;
+      default:
+        cerr << "unkown option" << endl;
+        abort();
+    }
+  }
+  if (optind < argc){
+    filename = argv[optind];
+  }
+  if (filename == NULL){
+    cerr << "Did not provide dumpfile" << endl;
+    abort();
+  }
   uint32_t framesize;
-  ifstream is ("dumpfile5000.bin", ifstream::binary);
+  ifstream is (filename, ifstream::binary); //TODO: add error check
   while(checkFrameCt(maxFrameCt) && is.read(reinterpret_cast<char *>(&framesize), sizeof(framesize))){
     framesize = ntohl(framesize);
     char *buffer = new char[framesize];
